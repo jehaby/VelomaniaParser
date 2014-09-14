@@ -1,25 +1,18 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: urf
- * Date: 9/11/14
- * Time: 9:50 AM
- */
-error_reporting(E_ALL);
-ini_set('display_errors', TRUE);
-ini_set('display_startup_errors', TRUE);
-
-phpinfo();
-
 
 require_once "settings.php";
+require_once 'erron.php';
 
 $username = $_POST['username'];
-$password = $_POST['password'] . $salt;
+$password = hash('ripemd128', $_POST['password'] . $salt);
 
+$db = new VPDB();
 
-$db = new SQLiteDatabase("files/db.sqlite");
+if ($output = $db -> authorizeUser($username, $password) === true) {
+    echo "Authorized";
+} else {
+    echo $output;
+}
 
-echo "bb";
 
 
