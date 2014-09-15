@@ -2,6 +2,7 @@
 
 require_once "settings.php";
 require_once 'erron.php';
+require_once 'VPDB.php';
 
 $username = $_POST['username'];
 $password = hash('ripemd128', $_POST['password'] . $salt);
@@ -13,6 +14,7 @@ if ($output = $db -> authorizeUser($username, $password) === true) {
 } else {
     echo $output;
 }
+
 
 
 

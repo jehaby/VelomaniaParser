@@ -18,18 +18,33 @@ class VPDB extends SQLite3{ // Velomania Parser DB
     }
 
     function authorizeUser($username, $password) {
-        $query = "SELECT username, password FROM User WHERE name='$username';";
-        $res = $this -> querySingle($query);
+        $query = "SELECT username, password FROM User WHERE username='$username';";
+        $res = $this -> querySingle($query, true);
 
-        var_dump($res);
+        if ($res && $res['password'] == $password) {
+            session_start();
+            $_SESSION['username'] = $username;
+            $_SESSION['password'] = $password;
+
+            echo "Hi, $username";
+
+
+        } else {
+            echo "Wrong username or password";
+        }
+
     }
 
     function registerUser($username, $password) {
-        $query = "INSERT INTO User(username, password) VALUES $username, $$password";
 
-        $this > exec($query);
+        if ($this -> querySingle("SELECT * FROM User WHERE username='$username'")) {
+            die("The username has been taken.");
+        }
+        $query = "INSERT INTO User(username, password) VALUES ('$username', '$password')";
 
+        $this -> exec($query);
 
+        return true;
     }
 
     private function isUserExists($username) {

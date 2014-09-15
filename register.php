@@ -7,6 +7,12 @@
  */
 
 require_once 'settings.php';
+require_once "VPDB.php";
+require_once 'erron.php';
+
+if ($_POST["invitation_code"] != $invitation_code) {
+    exit("Wrong invitation code!");
+}
 
 $username = $_POST['username'];
 $password = hash('ripemd128', $_POST['password'] . $salt);

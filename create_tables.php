@@ -1,6 +1,9 @@
 <?php
 
-$query = file_get_contents('files/create_tables.sql');
+require_once 'VPDB.php';
+
+$db = new VPDB();
+$db -> createDB();
 
 
 
