@@ -47,6 +47,23 @@ class VPDB extends SQLite3{ // Velomania Parser DB
         return true;
     }
 
+    function getKeywords($username) {
+        return [1, 2, 3];
+    }
+
+    function addKeyword($username, $keyword) { //it may be possible to make this function much more effective and well-written
+
+        $user_id = $this -> querySingle("SELECT user_id FROM User WHERE username='$username'");
+
+        if (!$keyword_id = $this -> querySingle("SELECT keyword_id FROM Keyword WHERE keyword={$keyword}")) {
+            $query = "INSERT INTO Keyword(keyword) VALUES ($keyword); SELECT last_insert_rowid() FROM Keyword";
+            $keyword_id = $this -> querySingle($query);
+        }
+
+        echo "$user_id, $keyword_id, $username, $keyword";
+        $this -> exec("INSERT INTO UserKeyword(user_id, keyword_id) VALUES ($user_id, $keyword_id);");
+    }
+
     private function isUserExists($username) {
 
     }
