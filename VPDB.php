@@ -28,7 +28,6 @@ class VPDB extends SQLite3{ // Velomania Parser DB
 
             echo "Hi, $username";
 
-
         } else {
             echo "Wrong username or password";
         }
@@ -47,20 +46,28 @@ class VPDB extends SQLite3{ // Velomania Parser DB
         return true;
     }
 
-    function getKeywords($username) {
-        return [1, 2, 3];
+    function getKeywords($username, $abc_order = false) {
+        $query = "SELECT keyword FROM Keyword JOIN UserKeyword USING (keyword_id) " .
+            "JOIN User USING (user_id) WHERE username='$username';";
+        $res = $this -> query($query);
+        while ($keyword = $res -> fetchArray(SQLITE3_ASSOC)) {
+            $result[] = $keyword['keyword'];
+        }
+        if ($abc_order) {
+            sort($result);
+        }
+        return $result;
     }
 
     function addKeyword($username, $keyword) { //it may be possible to make this function much more effective and well-written
 
         $user_id = $this -> querySingle("SELECT user_id FROM User WHERE username='$username'");
 
-        if (!$keyword_id = $this -> querySingle("SELECT keyword_id FROM Keyword WHERE keyword={$keyword}")) {
-            $query = "INSERT INTO Keyword(keyword) VALUES ($keyword); SELECT last_insert_rowid() FROM Keyword";
-            $keyword_id = $this -> querySingle($query);
+        if (!$keyword_id = $this -> querySingle("SELECT keyword_id FROM Keyword WHERE keyword='{$keyword}'")) {
+//            $query = "INSERT INTO Keyword(keyword) VALUES ($keyword); SELECT last_insert_rowid() FROM Keyword"; why doesn't work???
+            $this -> exec("INSERT INTO Keyword(keyword) VALUES ('$keyword');");
+            $keyword_id = $this -> querySingle("SELECT keyword_id FROM Keyword WHERE keyword='{$keyword}'");
         }
-
-        echo "$user_id, $keyword_id, $username, $keyword";
         $this -> exec("INSERT INTO UserKeyword(user_id, keyword_id) VALUES ($user_id, $keyword_id);");
     }
 

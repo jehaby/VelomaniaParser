@@ -11,6 +11,6 @@ keyword TEXT NOT NULL
 
 CREATE TABLE UserKeyword (
 user_id INTEGER REFERENCES User(user_id),
-keyword_id INTEGER REFERENCES Keyword(keyword_id)
+keyword_id INTEGER REFERENCES Keyword(keyword_id),
+PRIMARY KEY(user_id, keyword_id)
 );
-
