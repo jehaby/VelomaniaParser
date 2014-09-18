@@ -46,12 +46,12 @@ class VPDB extends SQLite3{ // Velomania Parser DB
         return true;
     }
 
-    function getKeywords($username, $abc_order = false) {
-        $query = "SELECT keyword FROM Keyword JOIN UserKeyword USING (keyword_id) " .
+    function getPatterns($username, $abc_order = false) {
+        $query = "SELECT pattern FROM Pattern JOIN UserPattern USING (pattern_id) " .
             "JOIN User USING (user_id) WHERE username='$username';";
         $res = $this -> query($query);
-        while ($keyword = $res -> fetchArray(SQLITE3_ASSOC)) {
-            $result[] = $keyword['keyword'];
+        while ($pattern = $res -> fetchArray(SQLITE3_ASSOC)) {
+            $result[] = $pattern['pattern'];
         }
         if ($abc_order) {
             sort($result);
@@ -59,16 +59,16 @@ class VPDB extends SQLite3{ // Velomania Parser DB
         return $result;
     }
 
-    function addKeyword($username, $keyword) { //it may be possible to make this function much more effective and well-written
+    function addPattern($username, $pattern) { //it may be possible to make this function much more effective and well-written
 
         $user_id = $this -> querySingle("SELECT user_id FROM User WHERE username='$username'");
 
-        if (!$keyword_id = $this -> querySingle("SELECT keyword_id FROM Keyword WHERE keyword='{$keyword}'")) {
-//            $query = "INSERT INTO Keyword(keyword) VALUES ($keyword); SELECT last_insert_rowid() FROM Keyword"; why doesn't work???
-            $this -> exec("INSERT INTO Keyword(keyword) VALUES ('$keyword');");
-            $keyword_id = $this -> querySingle("SELECT keyword_id FROM Keyword WHERE keyword='{$keyword}'");
+        if (!$pattern_id = $this -> querySingle("SELECT pattern_id FROM Pattern WHERE pattern='{$pattern}'")) {
+//            $query = "INSERT INTO Pattern(pattern) VALUES ($pattern); SELECT last_insert_rowid() FROM Pattern"; why doesn't work???
+            $this -> exec("INSERT INTO Pattern(pattern) VALUES ('$pattern');");
+            $pattern_id = $this -> querySingle("SELECT pattern_id FROM Pattern WHERE pattern='{$pattern}'");
         }
-        $this -> exec("INSERT INTO UserKeyword(user_id, keyword_id) VALUES ($user_id, $keyword_id);");
+        $this -> exec("INSERT INTO UserPattern(user_id, pattern_id) VALUES ($user_id, $pattern_id);");
     }
 
     private function isUserExists($username) {
