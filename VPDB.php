@@ -6,6 +6,8 @@
  * Time: 2:28 PM
  */
 
+require_once "Theme.php";
+
 class VPDB extends SQLite3{ // Velomania Parser DB
 
     function __construct($filename = 'files/VPDB.db') {
@@ -69,6 +71,32 @@ class VPDB extends SQLite3{ // Velomania Parser DB
             $pattern_id = $this -> querySingle("SELECT pattern_id FROM Pattern WHERE pattern='{$pattern}'");
         }
         $this -> exec("INSERT INTO UserPattern(user_id, pattern_id) VALUES ($user_id, $pattern_id);");
+    }
+
+    function deletePattern($pattern) {
+
+    }
+
+    function getThemes($pattern) {
+
+    }
+
+    function addThemes($pattern, $themes) {
+//        $query = "INSERT INTO Theme(title, author) VALUES";
+        $query = "";
+        $pattern_id = $this -> querySingle("SELECT pattern_id FROM Pattern WHERE pattern = '$pattern'");
+        foreach($themes as $theme){
+            $query .= "INSERT INTO Theme(title, author) VALUES ('{$theme -> title}', '{$theme ->author}')";
+            $query .= "INSERT INTO PatternTheme(pattern_id, theme_id)"
+        }
+        $query = rtrim($query, " ,");
+        $query .= ";";
+        var_dump($query);
+        //$this -> exec($query);
+    }
+
+    function deleteTheme($pattern, $theme) {
+
     }
 
     private function isUserExists($username) {
