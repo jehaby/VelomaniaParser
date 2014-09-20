@@ -73,26 +73,33 @@ class VPDB extends SQLite3{ // Velomania Parser DB
         $this -> exec("INSERT INTO UserPattern(user_id, pattern_id) VALUES ($user_id, $pattern_id);");
     }
 
-    function deletePattern($pattern) {
-
+    function deletePattern($pattern, $username) {
+        // first check if others users don't use this pattern;
+        $q = "DELETE FROM UserPattern WHERE " .
+            "pattern_id = (SELECT pattern_id FROM Pattern WHERE pattern = '{$pattern}') AND" .
+            "user_id = (SELECT user_id FROM User WHERE username = '{$username}')";  // delete join sqlite???
     }
 
     function getThemes($pattern) {
-
+        $query_text = "SELECT title, author FROM Theme JOIN PatternTheme USING (theme_id) JOIN " .
+            "Pattern USING (pattern_id) WHERE pattern = '{$pattern}'; ";
+        $res = [];
+        $query = $this -> query($query_text);
+        while ($theme = $query -> fetchArray(SQLITE3_ASSOC)) {
+            $res[] = new Theme($theme['title'], $theme['author']);
+        }
+        return $res;
     }
 
     function addThemes($pattern, $themes) {
-//        $query = "INSERT INTO Theme(title, author) VALUES";
+        $pattern_id = $this -> querySingle("SELECT pattern_id FROM Pattern WHERE pattern = '$pattern';");
         $query = "";
-        $pattern_id = $this -> querySingle("SELECT pattern_id FROM Pattern WHERE pattern = '$pattern'");
         foreach($themes as $theme){
-            $query .= "INSERT INTO Theme(title, author) VALUES ('{$theme -> title}', '{$theme ->author}')";
-            $query .= "INSERT INTO PatternTheme(pattern_id, theme_id)"
+            $query .= "INSERT INTO Theme(title, author) VALUES ('{$theme -> title}', '{$theme -> author}'); \n";
+            $query .= "INSERT INTO PatternTheme(pattern_id, theme_id) " .
+                "VALUES ({$pattern_id}, (SELECT last_insert_rowid() FROM Theme)); \n ";
         }
-        $query = rtrim($query, " ,");
-        $query .= ";";
-        var_dump($query);
-        //$this -> exec($query);
+        $this -> exec($query);
     }
 
     function deleteTheme($pattern, $theme) {

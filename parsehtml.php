@@ -31,5 +31,7 @@ foreach ($links as $link) {
     //echo $dom -> saveHTML($link) . "<br>\n";
 }
 
-$db -> addThemes("bla", [new Theme('Продам кожик', 'Врунгель'), new Theme('Куплю нож', 'Сява')]);
+//$db -> addThemes("рюкзак", [new Theme('рюкзак', 'Врунгель'), new Theme('Куплю нож', 'Сява')]);
+
+var_dump($db -> getThemes("рюкзак"));
 
