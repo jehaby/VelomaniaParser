@@ -74,20 +74,23 @@ class VPDB extends SQLite3{ // Velomania Parser DB
     }
 
     function deletePattern($pattern, $username) {
-        // first check if other users don't use this pattern;
-        if ($this -> querySingle("SELECT * FROM UserPattern " .
-            "WHERE user_id != (SELECT user_id FROM User WHERE username = '$username')"))
+
+        $pattern_id = $this -> querySingle("SELECT pattern_id FROM Pattern WHERE pattern = '$pattern';");
+
+        if ($this -> querySingle("SELECT * FROM UserPattern WHERE pattern_id = {$pattern_id} AND" .
+            "user_id != (SELECT user_id FROM User WHERE username = '$username')"))
         {
-
-
+            // If other user(s) use this pattern then leave it be.
             return;
         }
-        $q = "DELETE FROM UserPattern WHERE " .
-            "pattern_id = (SELECT pattern_id FROM Pattern WHERE pattern = '{$pattern}') AND" .
+        $q = "DELETE FROM UserPattern WHERE pattern_id = {$pattern_id} AND" .
             "user_id = (SELECT user_id FROM User WHERE username = '{$username}')";  // delete join sqlite???
 
         // find all themes related with this pattern and delete them
         // check if theme related to other pattern
+
+        $q = "SELECT * FROM PatternTheme WHERE pattern_id = {$pattern_id} AND " .
+            "";
         
 
     }
