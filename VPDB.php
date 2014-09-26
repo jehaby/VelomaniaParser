@@ -96,12 +96,12 @@ class VPDB extends SQLite3{ // Velomania Parser DB
     }
 
     function getThemes($pattern) {
-        $query_text = "SELECT title, author FROM Theme JOIN PatternTheme USING (theme_id) JOIN " .
+        $query_text = "SELECT title, author, theme_id FROM Theme JOIN PatternTheme USING (theme_id) JOIN " .
             "Pattern USING (pattern_id) WHERE pattern = '{$pattern}'; ";
         $res = [];
         $query = $this -> query($query_text);
         while ($theme = $query -> fetchArray(SQLITE3_ASSOC)) {
-            $res[] = new Theme($theme['title'], $theme['author']);
+            $res[] = new Theme($theme['title'], $theme['author'], $theme['theme_id']);
         }
         return $res;
     }
