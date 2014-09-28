@@ -2,6 +2,11 @@
 
 
 class Parser {
+    private $db;
+
+    function __construct() {
+        $this -> db = new VPDB();
+    }
 
     public function checkTheme($theme_id, $pattern) {
 
@@ -16,20 +21,20 @@ class Parser {
 
     }
 
-    private static function tooOldThemes($days_from_last_message) {
+    private function tooOldThemes($days_from_last_message) {
         if (!isset($days_from_last_message) || $days_from_last_message > 10) return false;
         return true;
     }
 
-    private static function stringContainsPattern ($pattern, $string) {
+    private function stringContainsPattern ($pattern, $string) {
 
     }
 
-    static function newPatternInSection($pattern, $section_id) {
+    function newPatternInSection($pattern, $section_id) {
         $dom = new domDocument;
         $page = 1;
 
-        while (!isset($days_from_last_message) || self :: tooOldThemes($days_from_last_message)) {
+        while (!isset($days_from_last_message) || $this -> tooOldThemes($days_from_last_message)) {
             $link = "http://forum.velomania.ru/forumdisplay.php?f=" . $section_id . "&page=" . $page++;
             $dom -> loadHTMLFile($link);
             $xpath = new DOMXPath($dom);
@@ -37,29 +42,33 @@ class Parser {
 
             foreach ($xpath -> query($query_xpath) as $theme) {
                 $str = $theme -> C14N();
-                var_dump($str);
-                $s = sscanf($str, "%[^(php?t=)].php?f=%d&amp%[^[]]");
-                var_dump($s);
-                // It should be possible to parse $theme_id much more elegant, probably with regex.
-                $pos1 = strpos($str, ".php?t=") + 7;
-                $pos2 = strpos($str, "&amp");
-                $theme_id = substr($str, $pos1, $pos2 - $pos1);
+                //preg_match("/\.php\?t=([0-9]+)/", $str, $matches);  //
+                preg_match("/(?<=php\?t=)(\d+)/", $str, $matches);
+
+                $theme_id = $matches[1];                    // TODO: think how to do it with sscanf()
                 $theme_title = $theme -> nodeValue;
-                $themes[$theme_id] = $theme_title;
+                $themes[$theme_id] = new Theme($theme_id, $theme_title);
 
                 // main logic, think about methods names
-//                if (self :: stringContainsPattern($pattern, $theme_title))  {   // if $theme_title has the $pattern
-//
-//
-//                } else {
-//                    if (self :: themeContainsPattern($pattern, $theme_id) ){
-//
-//                    } else {
-//
-//                    }
-//                }
-
+                if (self :: stringContainsPattern($pattern, $theme_title))  {   // if $theme_title has the $pattern
+                    // add new row in PatternTheme
+                    $themes_with_pattern[] = $theme_id;
+                } else {
+                    if (self :: themeContainsPattern($pattern, $theme_id) ){
+                        // add new row in PatternTheme
+                        $themes_with_pattern[] = $theme_id;
+                    } else {
+                        // do something
+                        // add record to Theme table!
+                        $themes_without_pattern[] = $theme_id;
+                    }
+                }
             }
+
+            foreach ($themes_with_pattern as $theme_id) {
+                $this -> db -> addThemes($pattern, null);  // TODO: continue here!
+            }
+
 
 //            var_dump($themes);
 
@@ -68,8 +77,9 @@ class Parser {
             $last_date = explode(',', $t = $xpath -> query($query_time) -> item(0) -> textContent)[0];
 
             $days_from_last_message = (new DateTime()) -> diff(DateTime :: createFromFormat("d.m.Y", $last_date)) -> d;
-            var_dump($days_from_last_message);
+//            var_dump($days_from_last_message);
         }
+        var_dump($themes);
 
     }
 

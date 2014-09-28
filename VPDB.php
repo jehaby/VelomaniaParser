@@ -109,10 +109,11 @@ class VPDB extends SQLite3{ // Velomania Parser DB
     function addThemes($pattern, $themes) {
         $pattern_id = $this -> querySingle("SELECT pattern_id FROM Pattern WHERE pattern = '$pattern';");
         $query = "";
-        foreach($themes as $theme){
-            $query .= "INSERT INTO Theme(title, author) VALUES ('{$theme -> title}', '{$theme -> author}'); \n";
+        foreach($themes as $theme){  // TODO: theme_id!
+            $query .= "INSERT INTO Theme(theme_id, title, author) " .
+                "VALUES ({$theme -> id}, {$theme -> title}', '{$theme -> author}'); \n";
             $query .= "INSERT INTO PatternTheme(pattern_id, theme_id) " .
-                "VALUES ({$pattern_id}, (SELECT last_insert_rowid() FROM Theme)); \n ";
+                "VALUES ({$pattern_id}, (SELECT last_insert_rowid() FROM Theme)); \n ";  // TODO: may be bug with last_insert_rowid()
         }
         $this -> exec($query);
     }

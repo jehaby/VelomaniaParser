@@ -15,12 +15,16 @@ if (isset($_SESSION['username'])) {
     echo "Hola, {$_SESSION['username']}";
 }
 
-function abc($v) {
-    if (isset($v)) echo "Set!"; else echo "not set";
-}
 
-abc($fff);
+$r = "/\.php\?t=([0-9]+)/";
+//$r = "/.*(title).*/";
+//$d = "19 - 48";
 
+$s = '<a class="title" href="showthread.php?t=109128&amp;s=9cc4743278267683da25d0bc146208c4" id="thread_title_109128">КОММЕРСАНТАМ и все, кто продает</a>';
+
+preg_match($r, $s, $matches);
+var_dump($s);
+var_dump($matches);
 
 
 ?>
