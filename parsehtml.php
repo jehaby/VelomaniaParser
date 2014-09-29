@@ -47,4 +47,5 @@ $db = new VPDB();
 //var_dump($db -> getThemes("рюкзак"));
 
 
-Parser :: newPatternInSection("", 73);
+$parser = new Parser();
+$parser -> newPatternInSection("рюкзак", 73);

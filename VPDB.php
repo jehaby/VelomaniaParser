@@ -122,6 +122,17 @@ class VPDB extends SQLite3{ // Velomania Parser DB
 
     }
 
+    function getCheckedThemes($pattern) {
+        $query_text = "SELECT theme_id FROM PatternCheckedTheme " .
+            "WHERE pattern_id=(SELECT pattern_id FROM Pattern WHERE pattern = '$pattern')";
+        $res = [];
+        $query = $this -> query($query_text);
+        while ($theme = $query -> fetchArray(SQLITE3_ASSOC)) {
+            $res[] = new Theme($theme['theme_id']);
+        }
+        return $res;
+    }
+
     private function isUserExists($username) {
 
     }

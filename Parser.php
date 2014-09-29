@@ -27,59 +27,55 @@ class Parser {
     }
 
     private function stringContainsPattern ($pattern, $string) {
+        return preg_match("/$pattern/", $string);
+    }
 
+    private function themeBodyContainsPattern($pattern, $theme_id) {  // checks only first message of the theme
+        $link = "http://forum.velomania.ru/showthread.php?t=" . $theme_id;
+        $xpath = new DOMXPath(DOMDocument :: loadHTMLFile($link));
+        // Check speed of xpath queries. Likely it's possible to speed them up.
+        $query_xpath = "(//div[@class='content']/div/blockquote)[1]";
+        $message_text = $xpath -> query($query_xpath) -> item(0) -> nodeValue;
+        return $this -> stringContainsPattern($pattern, $message_text);
+    }
+
+    private function themeContainsPattern($pattern, $theme_id, $theme_title) {
+        if ($this -> stringContainsPattern($pattern, $theme_title)) return True;
+        if ($this -> themeBodyContainsPattern($pattern, $theme_id)) return True;
+        return False;
     }
 
     function newPatternInSection($pattern, $section_id) {
-        $dom = new domDocument;
         $page = 1;
 
         while (!isset($days_from_last_message) || $this -> tooOldThemes($days_from_last_message)) {
             $link = "http://forum.velomania.ru/forumdisplay.php?f=" . $section_id . "&page=" . $page++;
-            $dom -> loadHTMLFile($link);
-            $xpath = new DOMXPath($dom);
+            $xpath = new DOMXPath(DOMDocument :: loadHTMLFile($link));
             $query_xpath = "//h3[@class='threadtitle']/a";
 
-            foreach ($xpath -> query($query_xpath) as $theme) {
-                $str = $theme -> C14N();
-                //preg_match("/\.php\?t=([0-9]+)/", $str, $matches);  //
-                preg_match("/(?<=php\?t=)(\d+)/", $str, $matches);
+            foreach ($xpath -> query($query_xpath) as $ore_for_theme) {
+                $str = $ore_for_theme -> C14N();
+                preg_match("/(?<=php\?t=)(\d+)/", $str, $matches);   // Mmm ... regular expressions. First sex, then love.
 
-                $theme_id = $matches[1];                    // TODO: think how to do it with sscanf()
-                $theme_title = $theme -> nodeValue;
-                $themes[$theme_id] = new Theme($theme_id, $theme_title);
+                $theme = new Theme($matches[1], $ore_for_theme -> nodeValue);
 
-                // main logic, think about methods names
-                if (self :: stringContainsPattern($pattern, $theme_title))  {   // if $theme_title has the $pattern
-                    // add new row in PatternTheme
-                    $themes_with_pattern[] = $theme_id;
+                if ($this -> themeContainsPattern($pattern, $theme -> id, $theme -> title)) {
+                    $themes_with_pattern[] = $theme;
                 } else {
-                    if (self :: themeContainsPattern($pattern, $theme_id) ){
-                        // add new row in PatternTheme
-                        $themes_with_pattern[] = $theme_id;
-                    } else {
-                        // do something
-                        // add record to Theme table!
-                        $themes_without_pattern[] = $theme_id;
-                    }
+                    $themes_without_pattern[] = $theme;
                 }
+
             }
-
-            foreach ($themes_with_pattern as $theme_id) {
-                $this -> db -> addThemes($pattern, null);  // TODO: continue here!
-            }
-
-
-//            var_dump($themes);
 
             // Looking for time of last posting in theme. I suspect it's terribly ugly.
             $query_time = "(//dl[@class='threadlastpost td' and last()]/dd[span])[last()]";
             $last_date = explode(',', $t = $xpath -> query($query_time) -> item(0) -> textContent)[0];
-
             $days_from_last_message = (new DateTime()) -> diff(DateTime :: createFromFormat("d.m.Y", $last_date)) -> d;
 //            var_dump($days_from_last_message);
         }
-        var_dump($themes);
+        var_dump($themes_with_pattern);
+        var_dump($themes_without_pattern);
+        //$this -> db -> addThemes($pattern, $themes_with_pattern);
 
     }
 

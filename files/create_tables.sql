@@ -24,9 +24,15 @@ CREATE TABLE Theme (
 CREATE TABLE PatternTheme (
   pattern_id INTEGER REFERENCES Pattern(pattern_id),
   theme_id INTEGER REFERENCES Theme(theme_id)
-  PRIMARY KEY
+  PRIMARY KEY(pattern_id, theme_id)
 );
 
 CREATE TABLE UselessTheme (
 theme_id INTEGER PRIMARY KEY
 );
+
+CREATE TABLE PatternCheckedTheme (
+theme_id INTEGER NOT NULL,  -- need't be a foreign key
+pattern_id INTEGER REFERENCES Pattern(pattern_id),
+PRIMARY KEY(theme_id, pattern_id)
+)
