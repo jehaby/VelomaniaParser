@@ -48,4 +48,4 @@ $db = new VPDB();
 
 
 $parser = new Parser();
-$parser -> newPatternInSection("рюкзак", 73);
+$parser -> checkSection("рюкзак", 73, True);

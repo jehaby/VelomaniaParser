@@ -8,33 +8,19 @@ class Parser {
         $this -> db = new VPDB();
     }
 
-    public function checkTheme($theme_id, $pattern) {
-
-
-    }
-
-    private function check () {
-
-    }
-
-    public function addPattern($pattern, $sections) {
-
-    }
-
     private function tooOldThemes($days_from_last_message) {
-        if (!isset($days_from_last_message) || $days_from_last_message > 10) return false;
-        return true;
+        if ($days_from_last_message > 10) return True;
+        return False;
     }
 
     private function stringContainsPattern ($pattern, $string) {
-        return preg_match("/$pattern/", $string);
+        return preg_match("/$pattern/i", $string);
     }
 
     private function themeBodyContainsPattern($pattern, $theme_id) {  // checks only first message of the theme
         $link = "http://forum.velomania.ru/showthread.php?t=" . $theme_id;
         $xpath = new DOMXPath(DOMDocument :: loadHTMLFile($link));
-        // Check speed of xpath queries. Likely it's possible to speed them up.
-        $query_xpath = "(//div[@class='content']/div/blockquote)[1]";
+        $query_xpath = "(//div[@class='content']/div/blockquote)[1]";  // TODO: speed up xpath queries?
         $message_text = $xpath -> query($query_xpath) -> item(0) -> nodeValue;
         return $this -> stringContainsPattern($pattern, $message_text);
     }
@@ -45,40 +31,41 @@ class Parser {
         return False;
     }
 
-    function newPatternInSection($pattern, $section_id) {
-        $page = 1;
+    function checkSection($pattern, $section_id, $new_pattern = False) {
+        if (!$new_pattern) $checked_themes = $this->$db->getCheckedThemes($pattern);
 
-        while (!isset($days_from_last_message) || $this -> tooOldThemes($days_from_last_message)) {
-            $link = "http://forum.velomania.ru/forumdisplay.php?f=" . $section_id . "&page=" . $page++;
-            $xpath = new DOMXPath(DOMDocument :: loadHTMLFile($link));
+        for ($page = $days_from_last_message = 1; !$this->tooOldThemes($days_from_last_message); $page++) {
+
+            $link = "http://forum.velomania.ru/forumdisplay.php?f=" . $section_id . "&page=" . $page;
+            $xpath = new DOMXPath(DOMDocument:: loadHTMLFile($link));
             $query_xpath = "//h3[@class='threadtitle']/a";
 
-            foreach ($xpath -> query($query_xpath) as $ore_for_theme) {
-                $str = $ore_for_theme -> C14N();
+            foreach ($xpath->query($query_xpath) as $ore_for_theme) {
+                $str = $ore_for_theme->C14N();
                 preg_match("/(?<=php\?t=)(\d+)/", $str, $matches);   // Mmm ... regular expressions. First sex, then love.
 
-                $theme = new Theme($matches[1], $ore_for_theme -> nodeValue);
+                $theme = new Theme($matches[1], $ore_for_theme->nodeValue);
 
-                if ($this -> themeContainsPattern($pattern, $theme -> id, $theme -> title)) {
+                if (!$new_pattern && array_key_exists($theme->id, $checked_themes)) continue;
+
+                if ($this->themeContainsPattern($pattern, $theme->id, $theme->title)) {
                     $themes_with_pattern[] = $theme;
                 } else {
                     $themes_without_pattern[] = $theme;
                 }
-
             }
 
+            if (!$new_pattern) break;
             // Looking for time of last posting in theme. I suspect it's terribly ugly.
             $query_time = "(//dl[@class='threadlastpost td' and last()]/dd[span])[last()]";
-            $last_date = explode(',', $t = $xpath -> query($query_time) -> item(0) -> textContent)[0];
-            $days_from_last_message = (new DateTime()) -> diff(DateTime :: createFromFormat("d.m.Y", $last_date)) -> d;
-//            var_dump($days_from_last_message);
+            $last_date = explode(',', $t = $xpath->query($query_time)->item(0)->textContent)[0];
+            $days_from_last_message = (new DateTime())->diff(DateTime:: createFromFormat("d.m.Y", $last_date))->d;
         }
-        var_dump($themes_with_pattern);
-        var_dump($themes_without_pattern);
-        //$this -> db -> addThemes($pattern, $themes_with_pattern);
 
+        var_dump($days_from_last_message);
+        var_dump($page);
+        $this -> db -> addThemes($pattern, $themes_with_pattern);
+        $this -> db -> addCheckedThemes($pattern, $themes_without_pattern);
     }
-
-
 
 }

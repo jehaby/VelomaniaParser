@@ -65,17 +65,17 @@ class VPDB extends SQLite3{ // Velomania Parser DB
 
         $user_id = $this -> querySingle("SELECT user_id FROM User WHERE username='$username'");
 
-        if (!$pattern_id = $this -> querySingle("SELECT pattern_id FROM Pattern WHERE pattern='{$pattern}'")) {
+        if (!$pattern_id = $this -> getPatternID($pattern)) {
 //            $query = "INSERT INTO Pattern(pattern) VALUES ($pattern); SELECT last_insert_rowid() FROM Pattern"; why doesn't work???
             $this -> exec("INSERT INTO Pattern(pattern) VALUES ('$pattern');");
-            $pattern_id = $this -> querySingle("SELECT pattern_id FROM Pattern WHERE pattern='{$pattern}'");
+            $pattern_id = $this -> getPatternID($pattern);
         }
         $this -> exec("INSERT INTO UserPattern(user_id, pattern_id) VALUES ($user_id, $pattern_id);");
     }
 
     function deletePattern($pattern, $username) {
 
-        $pattern_id = $this -> querySingle("SELECT pattern_id FROM Pattern WHERE pattern = '$pattern';");
+        $pattern_id = $this -> getPatternID($pattern);
 
         if ($this -> querySingle("SELECT * FROM UserPattern WHERE pattern_id = {$pattern_id} AND" .
             "user_id != (SELECT user_id FROM User WHERE username = '$username')"))
@@ -98,23 +98,33 @@ class VPDB extends SQLite3{ // Velomania Parser DB
     function getThemes($pattern) {
         $query_text = "SELECT title, author, theme_id FROM Theme JOIN PatternTheme USING (theme_id) JOIN " .
             "Pattern USING (pattern_id) WHERE pattern = '{$pattern}'; ";
-        $res = [];
         $query = $this -> query($query_text);
         while ($theme = $query -> fetchArray(SQLITE3_ASSOC)) {
-            $res[] = new Theme($theme['title'], $theme['author'], $theme['theme_id']);
+            $res[] = new Theme($theme['theme_id'], $theme['title'], $theme['author']);
         }
         return $res;
     }
 
     function addThemes($pattern, $themes) {
-        $pattern_id = $this -> querySingle("SELECT pattern_id FROM Pattern WHERE pattern = '$pattern';");
+        $pattern_id = $this -> getPatternID($pattern);
         $query = "";
         foreach($themes as $theme){  // TODO: theme_id!
             $query .= "INSERT INTO Theme(theme_id, title, author) " .
-                "VALUES ({$theme -> id}, {$theme -> title}', '{$theme -> author}'); \n";
+                "VALUES ({$theme -> id}, '{$theme -> title}', '{$theme -> author}'); \n";
             $query .= "INSERT INTO PatternTheme(pattern_id, theme_id) " .
-                "VALUES ({$pattern_id}, (SELECT last_insert_rowid() FROM Theme)); \n ";  // TODO: may be bug with last_insert_rowid()
+                "VALUES ({$pattern_id}, {$theme -> id}); \n ";  // TODO: may be bug with last_insert_rowid()
         }
+
+        $this -> exec($query);
+    }
+
+    function addCheckedThemes($pattern, $themes) {
+        $pattern_id = $this -> getPatternID($pattern);
+        $query = "INSERT INTO PatternCheckedTheme(pattern_id, theme_id) VALUES ";
+        foreach($themes as $theme) {
+            $query .= " ({$pattern_id}, {$theme -> id}),";
+        }
+        $query = rtrim($query, ',') . ';';
         $this -> exec($query);
     }
 
@@ -122,19 +132,27 @@ class VPDB extends SQLite3{ // Velomania Parser DB
 
     }
 
-    function getCheckedThemes($pattern) {
+    function getCheckedThemes($pattern, $keys_from_ids = True) {
         $query_text = "SELECT theme_id FROM PatternCheckedTheme " .
             "WHERE pattern_id=(SELECT pattern_id FROM Pattern WHERE pattern = '$pattern')";
         $res = [];
         $query = $this -> query($query_text);
         while ($theme = $query -> fetchArray(SQLITE3_ASSOC)) {
-            $res[] = new Theme($theme['theme_id']);
+            if ($keys_from_ids) {
+                $res[$theme['theme_id']] = new Theme($theme['theme_id']);
+            } else {
+                $res[] = new Theme($theme['theme_id']);
+            }
         }
         return $res;
     }
 
     private function isUserExists($username) {
 
+    }
+
+    private function getPatternID($pattern) {
+        return $this -> querySingle("SELECT pattern_id FROM Pattern WHERE pattern = '$pattern';");
     }
 
 

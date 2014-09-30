@@ -1,11 +1,13 @@
 <?php
 require_once'VPDB.php';
 require_once 'header.php';
+require_once 'Parser.php';
 
 $db = new VPDB();
 
 if (isset($_POST['pattern'])) {  // adding pattern
     $db -> addPattern($username, $_POST['pattern']);
+    $parser = new Parser();
 }
 
 ?>
