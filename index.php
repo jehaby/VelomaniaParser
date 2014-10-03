@@ -6,7 +6,8 @@ if (!empty($page = $_GET['page'])) {
 
     $data = array(
         'about' => array('model' => 'AboutModel', 'view' => 'AboutView', 'controller' => 'AboutController'),
-        'portfolio' => array('model' => 'PortfolioModel', 'view' => 'PortfolioView', 'controller' => 'PortfolioController')
+        'patterns' => array('model' => 'PatternsModel', 'view' => 'PatternsView', 'controller' => 'PatternsController'),
+        'settings' => array('model' => 'SettingsModel', 'view' => 'SettingsView', 'controller' => 'SettingsController')
     );
 
 //    foreach($data as $key => $components){
