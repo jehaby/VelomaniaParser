@@ -9,7 +9,8 @@
 class Model {
 
     public function __construct() {
-        $this->view = new View();
+        $this->template = "templates/template_1.php";
     }
+
 
 } 
