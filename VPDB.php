@@ -27,13 +27,9 @@ class VPDB extends SQLite3{ // Velomania Parser DB
             session_start();
             $_SESSION['username'] = $username;
             $_SESSION['password'] = $password;
-
-            echo "Hi, $username";
-
-        } else {
-            echo "Wrong username or password";
+            return true;
         }
-
+        return false;
     }
 
     function registerUser($username, $password) {
@@ -42,9 +38,7 @@ class VPDB extends SQLite3{ // Velomania Parser DB
             die("The username has been taken.");
         }
         $query = "INSERT INTO User(username, password) VALUES ('$username', '$password')";
-
         $this -> exec($query);
-
         return true;
     }
 
